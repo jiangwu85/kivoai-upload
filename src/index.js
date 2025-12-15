@@ -1,5 +1,10 @@
 
-// src/index.js
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Authorization, Content-Type"
+};
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -8,13 +13,17 @@ export default {
     // 路由：/list → 列出对象
     if (path === "/list") {
       const objects = await env.MY_BUCKET.list();
-      return Response.json({
-        keys: objects.objects.map(obj => ({
+      return Response.json(
+      {
+        success: true,
+        message: `success`,
+        data: objects.objects.map(obj => ({
           key: obj.key,
           size: obj.size,
           uploaded: obj.uploaded
         }))
-      });
+
+      },{ headers: corsHeaders });
     }
 
     // 路由：/upload/<key> + PUT → 上传
