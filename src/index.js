@@ -33,7 +33,6 @@ export default {
         return new Response("Missing object key", { status: 400 });
       }
       await env.MY_BUCKET.put(key, request.body);
-      //return new Response(`Uploaded to ${key}`, { status: 201 });
       return Response.json(
             {
               success: true,
@@ -67,7 +66,12 @@ export default {
         return new Response("Missing object key", { status: 400 });
       }
       await env.MY_BUCKET.delete(key);
-      return new Response(`Deleted ${key}`, { status: 200 });
+      return Response.json(
+                  {
+                    success: true,
+                    message: `success`,
+                    data: `${key}`
+                  },{ headers: corsHeaders });
     }
 
     // 根路径：返回使用说明
