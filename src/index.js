@@ -38,7 +38,7 @@ export default {
                   }))
         }
       }
-      return Response.json(data);
+      return Response.json(data, { headers: corsHeaders });
     }
 
     // 路由：/upload/<key> + PUT → 上传
@@ -53,7 +53,7 @@ export default {
         "message": "success",
         "data": `${key}`
       }
-      return Response.json(data);
+      return Response.json(data, { headers: corsHeaders });
     }
 
     // 路由：/download/<key> + GET → 下载
@@ -68,6 +68,7 @@ export default {
       }
       return new Response(object.body, {
         headers: {
+          ...corsHeaders,
           "Content-Type": object.httpMetadata?.contentType || "application/octet-stream"
         }
       });
@@ -85,7 +86,7 @@ export default {
               "message": "success",
               "data": `${key}`
       }
-      return Response.json(data);
+      return Response.json(data, { headers: corsHeaders });
     }
 
     // 根路径：返回使用说明
