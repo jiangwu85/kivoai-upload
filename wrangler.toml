@@ -1,0 +1,8 @@
+# wrangler.toml
+name = "kivoai-upload"
+main = "src/index.js"
+compatibility_date = "2025-12-15"
+
+[[r2_buckets]]
+binding = "MY_BUCKET"
+bucket_name = "kivoai"
