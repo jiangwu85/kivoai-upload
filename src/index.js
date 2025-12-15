@@ -1,10 +1,23 @@
 
 
 export default {
+    async function authorize(request, env) {
+      const authorization = request.headers.get("authorization");
+      const access_token = authorization ? authorization.replace("Bearer ", "") : null;
+      if (!access_token) {
+        return new Response("Unauthorized", { status: 401 });
+      }
+      const user_data = await env.MY_KV.get("auth_" + access_token);
+      if (!user_data) {
+        return new Response("Unauthorized", { status: 401 });
+      }
+      return user_data;
+    }
   async fetch(request, env) {
     const url = new URL(request.url);
     const path = url.pathname;
     if (path === "/list") {
+      authorize(request, env);
       const objects = await env.MY_BUCKET.list();
       return Response.json(
             {
@@ -18,6 +31,7 @@ export default {
             });
     }
     if (path.startsWith("/upload/")) {
+      authorize(request, env);
       const key = path.slice("/upload/".length);
       if (!key) {
         return new Response("Missing object key", { status: 400 });
@@ -31,6 +45,7 @@ export default {
             });
     }
     if (path.startsWith("/download/")) {
+      authorize(request, env);
       const key = path.slice("/download/".length);
       if (!key) {
         return new Response("Missing object key", { status: 400 });
@@ -46,6 +61,7 @@ export default {
       });
     }
     if (path.startsWith("/delete/")) {
+      authorize(request, env);
       const key = path.slice("/delete/".length);
       if (!key) {
         return new Response("Missing object key", { status: 400 });
