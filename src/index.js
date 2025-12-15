@@ -1,18 +1,19 @@
 
 
+async function authorize(request, env) {
+  const authorization = request.headers.get("authorization");
+  const access_token = authorization ? authorization.replace("Bearer ", "") : null;
+  if (!access_token) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+  const user_data = await env.MY_KV.get("auth_" + access_token);
+  if (!user_data) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+  return user_data;
+}
+
 export default {
-    async function authorize(request, env) {
-      const authorization = request.headers.get("authorization");
-      const access_token = authorization ? authorization.replace("Bearer ", "") : null;
-      if (!access_token) {
-        return new Response("Unauthorized", { status: 401 });
-      }
-      const user_data = await env.MY_KV.get("auth_" + access_token);
-      if (!user_data) {
-        return new Response("Unauthorized", { status: 401 });
-      }
-      return user_data;
-    }
   async fetch(request, env) {
     const url = new URL(request.url);
     const path = url.pathname;
