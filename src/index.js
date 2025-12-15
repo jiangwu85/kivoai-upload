@@ -26,34 +26,58 @@ export default {
 
     // 路由：/list → 列出对象
     if (path === "/list") {
-      const objects = await env.MY_BUCKET.list();
-      const data = {
-        "code": 200,
-        "message": "success",
-        "data": {
-            "keys": objects.objects.map(obj => ({
-                        "key": obj.key,
-                        "size": obj.size,
-                        "uploaded": obj.uploaded
-                  }))
-        }
-      }
-      return Response.json(data, { headers: corsHeaders });
+      try {
+              const objects = await env.MY_BUCKET.list();
+              return Response.json({
+                success: true,
+                message: "success",
+                data: {
+                  objects: objects.objects.map(obj => ({
+                    key: obj.key,
+                    size: obj.size,
+                    uploaded: obj.uploaded.toISOString(), // 转为 ISO 字符串
+                    etag: obj.etag,
+                  })),
+                  truncated: objects.truncated,
+                  cursor: objects.truncated ? objects.cursor : null
+                }
+              }, { status: 200 });
+            } catch (err) {
+              return Response.json({
+                success: false,
+                error: "Failed to list objects",
+                message: err.message
+              }, { status: 500 });
+            }
     }
 
     // 路由：/upload/<key> + PUT → 上传
     if (path.startsWith("/upload/")) {
       const key = path.slice("/upload/".length);
-      if (!key) {
-        return new Response("Missing object key", { status: 400 });
-      }
-      await env.MY_BUCKET.put(key, request.body);
-      const data = {
-        "code": 200,
-        "message": "success",
-        "data": { "key": key }
-      }
-      return Response.json(data, { headers: corsHeaders });
+        if (!key) {
+          return Response.json({
+            success: false,
+            error: "Missing object key in path (e.g., /upload/myfile.txt)"
+          }, { status: 400 });
+        }
+
+        try {
+          await env.MY_BUCKET.put(key, request.body);
+          return Response.json({
+            success: true,
+            message: "success",
+            data: {
+              key: key,
+              url: `${url.origin}/download/${encodeURIComponent(key)}`
+            }
+          }, { status: 201 });
+        } catch (err) {
+          return Response.json({
+            success: false,
+            error: "Failed to upload file",
+            message: err.message
+          }, { status: 500 });
+        }
     }
 
     // 路由：/download/<key> + GET → 下载
