@@ -1,12 +1,16 @@
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Authorization, Content-Type"
-};
-
 export default {
   async fetch(request, env) {
+    const url = new URL(request.url);
+    const path = url.pathname;
+    if (!path) {
+    return new Response(`
+        Usage:
+          GET  /list                    → List all objects
+          PUT  /upload/<key>            → Upload object (send body)
+          GET  /download/<key>          → Download object
+          DELETE /delete/<key>          → Delete object
+            `.trim(), { headers: { "Content-Type": "text/plain" } });
+    }
      const authorization = request.headers.get("authorization");
      const access_token = authorization ? authorization.replace("Bearer ", "") : null;
      if (!access_token) {
@@ -16,12 +20,6 @@ export default {
      if (!user_data) {
        return new Response("Unauthorized", { status: 401 });
      }
-
-
-    const url = new URL(request.url);
-    const path = url.pathname;
-
-    // 路由：/list → 列出对象
     if (path === "/list") {
       const objects = await env.MY_BUCKET.list();
       return Response.json(
@@ -34,10 +32,8 @@ export default {
           uploaded: obj.uploaded
         }))
 
-      },{ headers: corsHeaders });
+      });
     }
-
-    // 路由：/upload/<key> + PUT → 上传
     if (path.startsWith("/upload/")) {
       const key = path.slice("/upload/".length);
       if (!key) {
@@ -49,10 +45,8 @@ export default {
               success: true,
               message: `success`,
               data: `${key}`
-            },{ headers: corsHeaders });
+            });
     }
-
-    // 路由：/download/<key> + GET → 下载
     if (path.startsWith("/download/")) {
       const key = path.slice("/download/".length);
       if (!key) {
@@ -64,13 +58,10 @@ export default {
       }
       return new Response(object.body, {
         headers: {
-          ...corsHeaders,
           "Content-Type": object.httpMetadata?.contentType || "application/octet-stream"
         }
       });
     }
-
-    // 路由：/delete/<key> + DELETE → 删除
     if (path.startsWith("/delete/")) {
       const key = path.slice("/delete/".length);
       if (!key) {
@@ -82,16 +73,10 @@ export default {
                     success: true,
                     message: `success`,
                     data: `${key}`
-                  },{ headers: corsHeaders });
+                  });
     }
 
     // 根路径：返回使用说明
-    return new Response(`
-Usage:
-  GET  /list                    → List all objects
-  PUT  /upload/<key>            → Upload object (send body)
-  GET  /download/<key>          → Download object
-  DELETE /delete/<key>          → Delete object
-    `.trim(), { headers: { "Content-Type": "text/plain" } });
+    return new Response("empty", { headers: { "Content-Type": "text/plain" } });
   }
 };
