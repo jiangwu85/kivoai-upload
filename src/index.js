@@ -31,10 +31,10 @@ export default {
         "code": 200,
         "message": "success",
         "data": {
-            keys: objects.objects.map(obj => ({
-                        key: obj.key,
-                        size: obj.size,
-                        uploaded: obj.uploaded
+            "keys": objects.objects.map(obj => ({
+                        "key": obj.key,
+                        "size": obj.size,
+                        "uploaded": obj.uploaded
                   }))
         }
       }
@@ -51,7 +51,7 @@ export default {
       const data = {
         "code": 200,
         "message": "success",
-        "data": `${key}`
+        "data": { "key": key }
       }
       return Response.json(data, { headers: corsHeaders });
     }
@@ -84,7 +84,7 @@ export default {
       const data = {
               "code": 200,
               "message": "success",
-              "data": `${key}`
+              "data": { "key": key }
       }
       return Response.json(data, { headers: corsHeaders });
     }
