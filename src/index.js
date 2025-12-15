@@ -1,33 +1,35 @@
 
-// src/index.js
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const path = url.pathname;
-
-    // 路由：/list → 列出对象
     if (path === "/list") {
       const objects = await env.MY_BUCKET.list();
-      return Response.json({
-        keys: objects.objects.map(obj => ({
-          key: obj.key,
-          size: obj.size,
-          uploaded: obj.uploaded
-        }))
-      });
+      return Response.json(
+            {
+              success: true,
+              message: `success`,
+              data: objects.objects.map(obj => ({
+                key: obj.key,
+                size: obj.size,
+                uploaded: obj.uploaded
+              }))
+            });
     }
-
-    // 路由：/upload/<key> + PUT → 上传
     if (path.startsWith("/upload/")) {
       const key = path.slice("/upload/".length);
       if (!key) {
         return new Response("Missing object key", { status: 400 });
       }
       await env.MY_BUCKET.put(key, request.body);
-      return new Response(`Uploaded to ${key}`, { status: 201 });
+      return Response.json(
+            {
+              success: true,
+              message: `success`,
+              data: `${key}`
+            });
     }
-
-    // 路由：/download/<key> + GET → 下载
     if (path.startsWith("/download/")) {
       const key = path.slice("/download/".length);
       if (!key) {
@@ -43,18 +45,19 @@ export default {
         }
       });
     }
-
-    // 路由：/delete/<key> + DELETE → 删除
     if (path.startsWith("/delete/")) {
       const key = path.slice("/delete/".length);
       if (!key) {
         return new Response("Missing object key", { status: 400 });
       }
       await env.MY_BUCKET.delete(key);
-      return new Response(`Deleted ${key}`, { status: 200 });
+      return Response.json(
+                  {
+                    success: true,
+                    message: `success`,
+                    data: `${key}`
+                  });
     }
-
-    // 根路径：返回使用说明
     return new Response(`
 Usage:
   GET  /list                    → List all objects
