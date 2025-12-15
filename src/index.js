@@ -17,7 +17,10 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
     if (path === "/list") {
-      authorize(request, env);
+        user_data = authorize(request, env);
+        if (user_data instanceof Response) {
+            return user_data;
+        }
       const objects = await env.MY_BUCKET.list();
       return Response.json(
             {
@@ -31,6 +34,10 @@ export default {
             });
     }
     if (path.startsWith("/upload/")) {
+        user_data = authorize(request, env);
+        if (user_data instanceof Response) {
+            return user_data;
+        }
       authorize(request, env);
       const key = path.slice("/upload/".length);
       if (!key) {
@@ -45,6 +52,10 @@ export default {
             });
     }
     if (path.startsWith("/download/")) {
+        user_data = authorize(request, env);
+        if (user_data instanceof Response) {
+            return user_data;
+        }
       authorize(request, env);
       const key = path.slice("/download/".length);
       if (!key) {
@@ -61,6 +72,10 @@ export default {
       });
     }
     if (path.startsWith("/delete/")) {
+        user_data = authorize(request, env);
+        if (user_data instanceof Response) {
+            return user_data;
+        }
       authorize(request, env);
       const key = path.slice("/delete/".length);
       if (!key) {
