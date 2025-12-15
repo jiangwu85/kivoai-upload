@@ -6,7 +6,3 @@ compatibility_date = "2025-12-15"
 [[r2_buckets]]
 binding = "MY_BUCKET"
 bucket_name = "kivoai"
-
-[[kv_namespaces]]
-binding = "REDIS"
-id = "5211bbff1e4b46c6b6c3776ac3f50b88"

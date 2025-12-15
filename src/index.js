@@ -1,83 +1,30 @@
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Authorization, Content-Type"
-};
-
+// src/index.js
 export default {
   async fetch(request, env) {
-    if (request.method === "OPTIONS") {
-        return new Response(null, { headers: corsHeaders });
-    }
-
-    const authorization = request.headers.get("authorization");
-    const access_token = authorization ? authorization.replace("Bearer ", "") : null;
-    if (!access_token) {
-      return new Response("Unauthorized", { status: 401 });
-    }
-    const user_data = await env.MY_KV.get("auth_" + access_token);
-    if (!user_data) {
-      return new Response("Unauthorized", { status: 401 });
-    }
-
     const url = new URL(request.url);
     const path = url.pathname;
 
     // 路由：/list → 列出对象
     if (path === "/list") {
-      try {
-              const objects = await env.MY_BUCKET.list();
-              return Response.json({
-                success: true,
-                message: "success",
-                data: {
-                  objects: objects.objects.map(obj => ({
-                    key: obj.key,
-                    size: obj.size,
-                    uploaded: obj.uploaded.toISOString(), // 转为 ISO 字符串
-                    etag: obj.etag,
-                  })),
-                  truncated: objects.truncated,
-                  cursor: objects.truncated ? objects.cursor : null
-                }
-              }, { status: 200 });
-            } catch (err) {
-              return Response.json({
-                success: false,
-                error: "Failed to list objects",
-                message: err.message
-              }, { status: 500 });
-            }
+      const objects = await env.MY_BUCKET.list();
+      return Response.json({
+        keys: objects.objects.map(obj => ({
+          key: obj.key,
+          size: obj.size,
+          uploaded: obj.uploaded
+        }))
+      });
     }
 
     // 路由：/upload/<key> + PUT → 上传
     if (path.startsWith("/upload/")) {
       const key = path.slice("/upload/".length);
-        if (!key) {
-          return Response.json({
-            success: false,
-            error: "Missing object key in path (e.g., /upload/myfile.txt)"
-          }, { status: 400 });
-        }
-
-        try {
-          await env.MY_BUCKET.put(key, request.body);
-          return Response.json({
-            success: true,
-            message: "success",
-            data: {
-              key: key,
-              url: `${url.origin}/download/${encodeURIComponent(key)}`
-            }
-          }, { status: 201 });
-        } catch (err) {
-          return Response.json({
-            success: false,
-            error: "Failed to upload file",
-            message: err.message
-          }, { status: 500 });
-        }
+      if (!key) {
+        return new Response("Missing object key", { status: 400 });
+      }
+      await env.MY_BUCKET.put(key, request.body);
+      return new Response(`Uploaded to ${key}`, { status: 201 });
     }
 
     // 路由：/download/<key> + GET → 下载
@@ -92,7 +39,6 @@ export default {
       }
       return new Response(object.body, {
         headers: {
-          ...corsHeaders,
           "Content-Type": object.httpMetadata?.contentType || "application/octet-stream"
         }
       });
@@ -105,12 +51,7 @@ export default {
         return new Response("Missing object key", { status: 400 });
       }
       await env.MY_BUCKET.delete(key);
-      const data = {
-              "code": 200,
-              "message": "success",
-              "data": { "key": key }
-      }
-      return Response.json(data, { headers: corsHeaders });
+      return new Response(`Deleted ${key}`, { status: 200 });
     }
 
     // 根路径：返回使用说明
