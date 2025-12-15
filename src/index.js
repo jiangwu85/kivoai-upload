@@ -1,20 +1,44 @@
 
-// src/index.js
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Authorization, Content-Type"
+};
+
 export default {
   async fetch(request, env) {
+    if (request.method === "OPTIONS") {
+        return new Response(null, { headers: corsHeaders });
+    }
+
+    const authorization = request.headers.get("authorization");
+    const access_token = authorization ? authorization.replace("Bearer ", "") : null;
+    if (!access_token) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+    const user_data = await env.MY_KV.get("auth_" + access_token);
+    if (!user_data) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+
     const url = new URL(request.url);
     const path = url.pathname;
 
     // 路由：/list → 列出对象
     if (path === "/list") {
       const objects = await env.MY_BUCKET.list();
-      return Response.json({
-        keys: objects.objects.map(obj => ({
-          key: obj.key,
-          size: obj.size,
-          uploaded: obj.uploaded
-        }))
-      });
+      const data = {
+        "code": 200,
+        "message": "success",
+        "data": {
+            keys: objects.objects.map(obj => ({
+                        key: obj.key,
+                        size: obj.size,
+                        uploaded: obj.uploaded
+                  }))
+        }
+      }
+      return Response.json(data);
     }
 
     // 路由：/upload/<key> + PUT → 上传
@@ -24,7 +48,12 @@ export default {
         return new Response("Missing object key", { status: 400 });
       }
       await env.MY_BUCKET.put(key, request.body);
-      return new Response(`Uploaded to ${key}`, { status: 201 });
+      const data = {
+        "code": 200,
+        "message": "success",
+        "data": `${key}`
+      }
+      return Response.json(data);
     }
 
     // 路由：/download/<key> + GET → 下载
@@ -51,7 +80,12 @@ export default {
         return new Response("Missing object key", { status: 400 });
       }
       await env.MY_BUCKET.delete(key);
-      return new Response(`Deleted ${key}`, { status: 200 });
+      const data = {
+              "code": 200,
+              "message": "success",
+              "data": `${key}`
+      }
+      return Response.json(data);
     }
 
     // 根路径：返回使用说明
