@@ -33,7 +33,13 @@ export default {
         return new Response("Missing object key", { status: 400 });
       }
       await env.MY_BUCKET.put(key, request.body);
-      return new Response(`Uploaded to ${key}`, { status: 201 });
+      //return new Response(`Uploaded to ${key}`, { status: 201 });
+      return Response.json(
+            {
+              success: true,
+              message: `success`,
+              data: `${key}`
+            },{ headers: corsHeaders });
     }
 
     // 路由：/download/<key> + GET → 下载
@@ -48,6 +54,7 @@ export default {
       }
       return new Response(object.body, {
         headers: {
+          ...corsHeaders,
           "Content-Type": object.httpMetadata?.contentType || "application/octet-stream"
         }
       });
