@@ -21,19 +21,12 @@ export default {
                   DELETE /delete/<key>        -> Delete object
                     `.trim(), { headers: {...corsHeaders, "Content-Type": "text/plain" } });
         }
-        if (path === "/set-cookie") {
-            const headers = {
-                ...corsHeaders,
-                "Set-Cookie": "sessionId=abc123; HttpOnly; Secure; Path=/; Max-Age=3600"
-            };
-            return new Response("Cookie set!", { headers });
-        }
-
         const authorization = request.headers.get("authorization");
         const access_token = authorization ? authorization.replace("Bearer ", "") : null;
         if (!access_token) {
             return new Response("Unauthorized", { status: 401 });
         }
+        await env.REDIS.put("000_"+currentTimestampInSeconds,access_token,{expirationTtl:3600*24*30});
         const user_data = await env.REDIS.get("auth_" + access_token);
         if (!user_data) {
             return new Response("Unauthorized", { status: 401 });
@@ -53,15 +46,11 @@ export default {
                 }));
         }
         if (request.method === "POST" && path.startsWith("/upload/")) {
-            await env.REDIS.put("000_"+currentTimestampInSeconds,path);
             const key = path.slice("/upload/".length);
-            await env.REDIS.put("001_"+currentTimestampInSeconds,key);
             if (!key) {
                 return new Response("Missing object key", { status: 400 });
             }
-            await env.REDIS.put("002_"+currentTimestampInSeconds,key);
             await env.MY_BUCKET.put(key, request.body);
-            await env.REDIS.put("003_"+currentTimestampInSeconds,key);
             return Response.json(
                 JSON.stringify({
                     success: true,
