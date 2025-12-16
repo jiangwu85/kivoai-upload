@@ -3,8 +3,8 @@ export default {
         const url = new URL(request.url);
         const path = url.pathname;
         const corsHeaders = {
-            // "Access-Control-Allow-Origin": "*",
-            // "Access-Control-Allow-Methods": "*",
+             "Access-Control-Allow-Origin": "*",
+             "Access-Control-Allow-Methods": "*"
             // "Access-Control-Allow-Headers": "*"
         };
         if (request.method === "OPTIONS") {
@@ -32,7 +32,7 @@ export default {
         if (request.method === "GET" && path === "/list") {
             const objects = await env.MY_BUCKET.list();
             return Response.json(
-                {
+                JSON.stringify({
                     success: true,
                     message: `success`,
                     data: objects.objects.map(obj => ({
@@ -40,7 +40,7 @@ export default {
                         size: obj.size,
                         uploaded: obj.uploaded
                     }))
-                });
+                }));
         }
         if (request.method === "POST" && path.startsWith("/upload/")) {
             const key = path.slice("/upload/".length);
@@ -49,11 +49,11 @@ export default {
             }
             await env.MY_BUCKET.put(key, request.body);
             return Response.json(
-                {
+                JSON.stringify({
                     success: true,
                     message: `success`,
                     data: `${key}`
-                });
+                }));
         }
         if (request.method === "GET" && path.startsWith("/download/")) {
             const key = path.slice("/download/".length);
@@ -77,11 +77,11 @@ export default {
             }
             await env.MY_BUCKET.delete(key);
             return Response.json(
-                {
+                JSON.stringify({
                     success: true,
                     message: `success`,
                     data: `${key}`
-                });
+                }));
         }
     }
 };
