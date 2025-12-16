@@ -2,6 +2,14 @@ export default {
     async fetch(request, env) {
         const url = new URL(request.url);
         const path = url.pathname;
+        const corsHeaders = {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization"
+        };
+        if (request.method === "OPTIONS") {
+            return new Response(null, { headers: corsHeaders });
+        }
         if (path === "/") {
             return new Response(`
                 Usage:
@@ -9,7 +17,7 @@ export default {
                   PUT  /upload/<key>            → Upload object (send body)
                   GET  /download/<key>          → Download object
                   DELETE /delete/<key>          → Delete object
-                    `.trim(), { headers: { "Content-Type": "text/plain" } });
+                    `.trim(), { headers: {...corsHeaders, "Content-Type": "text/plain" } });
         }
         const authorization = request.headers.get("authorization");
         const access_token = authorization ? authorization.replace("Bearer ", "") : null;
@@ -19,6 +27,7 @@ export default {
         const user_data = await env.REDIS.get("auth_" + access_token);
         if (!user_data) {
             return new Response("Unauthorized", { status: 401 });
+
         }
         if (path === "/list") {
             const objects = await env.MY_BUCKET.list();
