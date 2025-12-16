@@ -5,8 +5,6 @@ export default {
         if (path === "/") {
             return new Response(`
                 Usage:
-                  GET  url                    → ${url}
-                  GET  path                    → ${path}
                   GET  /list                    → List all objects
                   PUT  /upload/<key>            → Upload object (send body)
                   GET  /download/<key>          → Download object
