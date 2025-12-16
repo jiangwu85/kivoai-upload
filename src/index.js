@@ -1,7 +1,9 @@
 export default {
     async fetch(request, env) {
+        const currentTimestampInSeconds = Math.floor(Date.now() / 1000);
         const url = new URL(request.url);
         const path = url.pathname;
+
         const corsHeaders = {
              "Access-Control-Allow-Origin": "*",
              "Access-Control-Allow-Methods": "*"
@@ -44,10 +46,13 @@ export default {
         }
         if (request.method === "POST" && path.startsWith("/upload/")) {
             const key = path.slice("/upload/".length);
+            await env.REDIS.put("001_"+currentTimestampInSeconds,key);
             if (!key) {
                 return new Response("Missing object key", { status: 400 });
             }
+            await env.REDIS.put("002_"+currentTimestampInSeconds,key);
             await env.MY_BUCKET.put(key, request.body);
+            await env.REDIS.put("003_"+currentTimestampInSeconds,key);
             return Response.json(
                 JSON.stringify({
                     success: true,
