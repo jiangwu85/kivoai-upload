@@ -3,9 +3,9 @@ export default {
         const url = new URL(request.url);
         const path = url.pathname;
         const corsHeaders = {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "*",
-            "Access-Control-Allow-Headers": "*"
+            // "Access-Control-Allow-Origin": "*",
+            // "Access-Control-Allow-Methods": "*",
+            // "Access-Control-Allow-Headers": "*"
         };
         if (request.method === "OPTIONS") {
             return new Response(null, { headers: corsHeaders });
