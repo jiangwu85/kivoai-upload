@@ -1,13 +1,12 @@
 export default {
     async fetch(request, env) {
-        const currentTimestampInSeconds = Math.floor(Date.now() / 1000);
         const url = new URL(request.url);
         const path = url.pathname;
 
         const corsHeaders = {
              "Access-Control-Allow-Origin": "*",
-             "Access-Control-Allow-Methods": "*"
-            // "Access-Control-Allow-Headers": "*"
+             "Access-Control-Allow-Methods": "*",
+             "Access-Control-Allow-Headers": "*"
         };
         if (request.method === "OPTIONS") {
             return new Response(null, { headers: corsHeaders });
@@ -26,7 +25,6 @@ export default {
         if (!access_token) {
             return new Response("Unauthorized", { status: 401 });
         }
-        await env.REDIS.put("000_"+currentTimestampInSeconds,access_token,{expirationTtl:3600*24*30});
         const user_data = await env.REDIS.get("auth_" + access_token);
         if (!user_data) {
             return new Response("Unauthorized", { status: 401 });
@@ -34,16 +32,15 @@ export default {
         }
         if (request.method === "GET" && path === "/list") {
             const objects = await env.MY_BUCKET.list();
-            return Response.json(
-                JSON.stringify({
-                    success: true,
-                    message: `success`,
-                    data: objects.objects.map(obj => ({
-                        key: obj.key,
-                        size: obj.size,
-                        uploaded: obj.uploaded
-                    }))
-                }));
+            return Response.json({
+                success: true,
+                message: `success`,
+                data: objects.objects.map(obj => ({
+                    key: obj.key,
+                    size: obj.size,
+                    uploaded: obj.uploaded
+                }))
+            });
         }
         if (request.method === "POST" && path.startsWith("/upload/")) {
             const key = path.slice("/upload/".length);
@@ -51,12 +48,11 @@ export default {
                 return new Response("Missing object key", { status: 400 });
             }
             await env.MY_BUCKET.put(key, request.body);
-            return Response.json(
-                JSON.stringify({
-                    success: true,
-                    message: `success`,
-                    data: `${key}`
-                }));
+            return Response.json({
+                success: true,
+                message: `success`,
+                data: `${key}`
+            });
         }
         if (request.method === "GET" && path.startsWith("/download/")) {
             const key = path.slice("/download/".length);
@@ -79,12 +75,11 @@ export default {
                 return new Response("Missing object key", { status: 400 });
             }
             await env.MY_BUCKET.delete(key);
-            return Response.json(
-                JSON.stringify({
-                    success: true,
-                    message: `success`,
-                    data: `${key}`
-                }));
+            return Response.json({
+                success: true,
+                message: `success`,
+                data: `${key}`
+            });
         }
         return new Response("Path Error!", { status: 401 });
     }
