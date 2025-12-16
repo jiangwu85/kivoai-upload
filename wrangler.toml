@@ -3,6 +3,13 @@ name = "kivoai-upload"
 main = "src/index.js"
 compatibility_date = "2025-12-15"
 
+[observability]
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+invocation_logs = true
+persist = true
+
 [[r2_buckets]]
 binding = "MY_BUCKET"
 bucket_name = "kivoai"
