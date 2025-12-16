@@ -1,7 +1,16 @@
-
-
 export default {
   async fetch(request, env) {
+      const authorization = request.headers.get("authorization");
+      const access_token = authorization ? authorization.replace("Bearer ", "") : null;
+      if (!access_token) {
+          return new Response("Unauthorized", { status: 401 });
+      }
+      const user_data = await env.REDIS.get("auth_" + access_token);
+      return new Response(user_data, { status: 200 });
+      // if (!user_data) {
+      //     return new Response("Unauthorized", { status: 401 });
+      // }
+
     const url = new URL(request.url);
     const path = url.pathname;
     if (path === "/list") {
