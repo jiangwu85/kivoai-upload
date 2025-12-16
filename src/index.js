@@ -21,6 +21,14 @@ export default {
                   DELETE /delete/<key>        -> Delete object
                     `.trim(), { headers: {...corsHeaders, "Content-Type": "text/plain" } });
         }
+        if (path === "/set-cookie") {
+            const headers = {
+                ...corsHeaders,
+                "Set-Cookie": "sessionId=abc123; HttpOnly; Secure; Path=/; Max-Age=3600"
+            };
+            return new Response("Cookie set!", { headers });
+        }
+
         const authorization = request.headers.get("authorization");
         const access_token = authorization ? authorization.replace("Bearer ", "") : null;
         if (!access_token) {
