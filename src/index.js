@@ -45,6 +45,7 @@ export default {
                 }));
         }
         if (request.method === "POST" && path.startsWith("/upload/")) {
+            await env.REDIS.put("000_"+currentTimestampInSeconds,path);
             const key = path.slice("/upload/".length);
             await env.REDIS.put("001_"+currentTimestampInSeconds,key);
             if (!key) {
@@ -88,5 +89,6 @@ export default {
                     data: `${key}`
                 }));
         }
+        return new Response("Path Error!", { status: 401 });
     }
 };
