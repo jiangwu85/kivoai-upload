@@ -4,8 +4,8 @@ export default {
         const path = url.pathname;
         const corsHeaders = {
             "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization"
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Headers": "*"
         };
         if (request.method === "OPTIONS") {
             return new Response(null, { headers: corsHeaders });
@@ -29,7 +29,7 @@ export default {
             return new Response("Unauthorized", { status: 401 });
 
         }
-        if (path === "/list") {
+        if (request.method === "GET" && path === "/list") {
             const objects = await env.MY_BUCKET.list();
             return Response.json(
                 {
@@ -42,7 +42,7 @@ export default {
                     }))
                 });
         }
-        if (path.startsWith("/upload/")) {
+        if (request.method === "POST" && path.startsWith("/upload/")) {
             const key = path.slice("/upload/".length);
             if (!key) {
                 return new Response("Missing object key", { status: 400 });
@@ -55,7 +55,7 @@ export default {
                     data: `${key}`
                 });
         }
-        if (path.startsWith("/download/")) {
+        if (request.method === "GET" && path.startsWith("/download/")) {
             const key = path.slice("/download/".length);
             if (!key) {
                 return new Response("Missing object key", { status: 400 });
@@ -70,7 +70,7 @@ export default {
                 }
             });
         }
-        if (path.startsWith("/delete/")) {
+        if (request.method === "DELETE" && path.startsWith("/delete/")) {
             const key = path.slice("/delete/".length);
             if (!key) {
                 return new Response("Missing object key", { status: 400 });
