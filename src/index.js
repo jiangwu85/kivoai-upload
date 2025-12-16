@@ -6,7 +6,6 @@ export default {
           return new Response("Unauthorized", { status: 401 });
       }
       const user_data = await env.REDIS.get("auth_" + access_token);
-      return new Response(user_data, { status: 200 });
        if (!user_data) {
            return new Response("Unauthorized", { status: 401 });
        }
