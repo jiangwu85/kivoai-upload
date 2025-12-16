@@ -7,9 +7,9 @@ export default {
       }
       const user_data = await env.REDIS.get("auth_" + access_token);
       return new Response(user_data, { status: 200 });
-      // if (!user_data) {
-      //     return new Response("Unauthorized", { status: 401 });
-      // }
+       if (!user_data) {
+           return new Response("Unauthorized", { status: 401 });
+       }
 
     const url = new URL(request.url);
     const path = url.pathname;
@@ -69,6 +69,8 @@ export default {
     }
     return new Response(`
 Usage:
+  GET  url                    → ${url}
+  GET  path                    → ${path}
   GET  /list                    → List all objects
   PUT  /upload/<key>            → Upload object (send body)
   GET  /download/<key>          → Download object
