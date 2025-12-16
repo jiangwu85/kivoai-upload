@@ -13,10 +13,10 @@ export default {
         if (path === "/") {
             return new Response(`
                 Usage:
-                  GET  /list                    → List all objects
-                  PUT  /upload/<key>            → Upload object (send body)
-                  GET  /download/<key>          → Download object
-                  DELETE /delete/<key>          → Delete object
+                  GET  /list                  -> List all objects
+                  PUT  /upload/<key>          -> Upload object (send body)
+                  GET  /download/<key>        -> Download object
+                  DELETE /delete/<key>        -> Delete object
                     `.trim(), { headers: {...corsHeaders, "Content-Type": "text/plain" } });
         }
         const authorization = request.headers.get("authorization");
